@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button"
 
 export default function Dashboard() {
     return (
-        <section>
+        <>
             <header className="container mx-auto flex justify-end p-4">
                 <Button>Click Me</Button>
             </header>
@@ -12,6 +12,6 @@ export default function Dashboard() {
                     Bem vindo {"{"}user.name{"}"}
                 </p>
             </main>
-        </section>
+        </>
     )
 }
