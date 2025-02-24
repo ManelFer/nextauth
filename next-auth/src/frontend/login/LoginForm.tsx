@@ -6,6 +6,12 @@ import { Input } from "@/components/ui/input"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {useForm} from "react-hook-form"
 import {z} from "zod"
+import {signIn} from "next-auth/react"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import {useToast} from "@hooks/use-toast"
+import { describe } from "node:test"
+import { title } from "process"
 
 const formSchema = z.object({
     email: z.string().email("Email invalido"),
@@ -15,6 +21,9 @@ const formSchema = z.object({
 type Form = z.infer<typeof formSchema>;
 
 export function LoginForm(){
+    const router = useRouter();
+    const [loading, setloading] = useState(false);
+    const {toast} = useToast();
     const form = useForm<Form>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -23,9 +32,33 @@ export function LoginForm(){
         },
     });
 
-    function onSubmit(values:Form){
-        console.log(values);
+    async function onSubmit(values:Form) {
+        try {
+            setloading(true);
+            const res = await signIn("credentials",{
+                redirect: false,
+                ...values,
+            });
+            if (res?.ok){
+                toast({
+                    description: "Usuário logado com sucesso",
+                });
+                router.push("/dashboard");
+            } else throw new Error();
+        } catch {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Usuário/senha inválido(s)",
+            });
+        } finally {
+            setloading(false);
+        }
     }
+
+    /*function onSubmit(values:Form){
+        console.log(values);
+    } */
 
     return(
         <section className="h-screen flex flex-col justify-center items-center">
@@ -52,12 +85,13 @@ export function LoginForm(){
                             <FormItem>
                                 <FormLabel>Password</FormLabel>
                                 <FormControl>
-                                    <Input type="password "/>
+                                    <Input type="password " {...field}/>
                                 </FormControl>
                             </FormItem>
                         )}
                     />
-                    <Button type="submit">Entrar</Button>
+                    {loading && <p className="mt-4">Carregando...</p>}
+                    {!loading && <Button type="submit">Entrar</Button>}
                 </form>
             </Form>
         </section>
